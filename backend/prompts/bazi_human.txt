@@ -1,0 +1,3 @@
+我出生于公历 {{ birth_date }} {{ birth_time }}，性别 {{ gender }}，出生地为 {{ birthplace }}。
+
+请你以专业四柱八字研究者的角色，对我的八字进行全面分析。

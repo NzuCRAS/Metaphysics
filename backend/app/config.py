@@ -1,0 +1,38 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    app_env: str = "development"
+    log_level: str = "INFO"
+
+    # CORS
+    cors_origins: List[str] = ["*"]
+
+    # LLM 配置
+    llm_provider: str = "openai"  # openai | anthropic | openai_compatible
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    openai_base_url: str = ""
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-3-5-sonnet-20241022"
+    openai_compatible_base_url: str = ""
+    openai_compatible_api_key: str = ""
+    openai_compatible_model: str = ""
+
+    # 预留中间件
+    database_url: str = ""
+    redis_url: str = ""
+
+    @property
+    def is_development(self) -> bool:
+        return self.app_env.lower() == "development"
+
+
+settings = Settings()
