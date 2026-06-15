@@ -10,6 +10,7 @@ class ImageProcessor:
 
     SUPPORTED_FORMATS = {"image/jpeg", "image/png", "image/jpg", "image/webp"}
     MAX_SIZE = (1920, 1920)
+    MAX_PIXELS = 1920 * 1920  # 约 370 万像素，防止解压炸弹
     JPEG_QUALITY = 85
     MAX_FILE_SIZE_MB = 10
 
@@ -18,7 +19,7 @@ class ImageProcessor:
         if file.content_type not in cls.SUPPORTED_FORMATS:
             raise HTTPException(
                 status_code=400,
-                detail=f"Unsupported image format: {file.content_type}. Allowed: JPEG, PNG, WebP."
+                detail="Unsupported image format. Allowed: JPEG, PNG, WebP."
             )
 
         content = await file.read()
@@ -30,6 +31,15 @@ class ImageProcessor:
 
         try:
             img = Image.open(io.BytesIO(content))
+
+            # 限制解码后的像素数量，防止解压炸弹
+            width, height = img.size
+            if width * height > cls.MAX_PIXELS:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Image resolution too large. Max pixels: {cls.MAX_PIXELS}."
+                )
+
             img = cls._fix_orientation(img)
             img.thumbnail(cls.MAX_SIZE, Image.LANCZOS)
 
@@ -52,8 +62,10 @@ class ImageProcessor:
 
             base64_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
             return base64_str, mime_type
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to process image: {str(e)}")
+        except HTTPException:
+            raise
+        except Exception:
+            raise HTTPException(status_code=400, detail="Failed to process image. Please upload a valid image file.")
 
     @staticmethod
     def _fix_orientation(img: Image.Image) -> Image.Image:

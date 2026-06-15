@@ -179,8 +179,16 @@ function hideLoading() {
 
 function showResult(report) {
   hideLoading();
+  if (typeof DOMPurify === 'undefined') {
+    const errorEl = document.getElementById('error-message');
+    if (errorEl) {
+      errorEl.textContent = 'Security library failed to load. Please refresh the page.';
+      errorEl.classList.remove('hidden');
+    }
+    return;
+  }
   const rawHtml = marked.parse(report);
-  const safeHtml = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(rawHtml) : rawHtml;
+  const safeHtml = DOMPurify.sanitize(rawHtml);
   document.getElementById('result-content').innerHTML = safeHtml;
   document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }

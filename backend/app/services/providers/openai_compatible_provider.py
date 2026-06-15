@@ -15,7 +15,7 @@ class OpenAICompatibleProvider(OpenAIProvider):
 
     @property
     def metadata(self) -> Dict[str, Any]:
-        return {"provider": "openai_compatible", "model": self.model, "base_url": self.base_url}
+        return {"provider": "openai_compatible", "model": self.model}
 
 
 def create_llm_client(settings) -> LLMClient:

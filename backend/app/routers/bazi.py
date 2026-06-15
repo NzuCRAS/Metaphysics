@@ -38,4 +38,4 @@ async def analyze_bazi(request: BaziRequest):
         raise
     except Exception as e:
         logger.exception("Bazi analysis failed")
-        raise HTTPException(status_code=500, detail=f"LLM invocation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Analysis failed. Please try again later.")

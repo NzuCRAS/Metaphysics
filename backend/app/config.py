@@ -13,7 +13,11 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # CORS
-    cors_origins: List[str] = ["*"]
+    cors_origins: List[str] = [
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:8000",
+    ]
 
     # LLM 配置
     llm_provider: str = "openai"  # openai | anthropic | openai_compatible

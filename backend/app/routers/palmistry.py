@@ -13,6 +13,10 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+VALID_GENDERS = {"male", "female", "男", "女"}
+VALID_HANDS = {"left", "right", "左手", "右手"}
+
+
 @router.post("/palmistry", response_model=PalmistryResponse)
 async def analyze_palmistry(
     hand_image: UploadFile = File(...),
@@ -20,6 +24,13 @@ async def analyze_palmistry(
     dominant_hand: str = Form(...),
     uploaded_hand: str = Form(...),
 ):
+    if gender not in VALID_GENDERS:
+        raise HTTPException(status_code=400, detail="Invalid gender value.")
+    if dominant_hand not in VALID_HANDS:
+        raise HTTPException(status_code=400, detail="Invalid dominant_hand value.")
+    if uploaded_hand not in VALID_HANDS:
+        raise HTTPException(status_code=400, detail="Invalid uploaded_hand value.")
+
     try:
         client = create_llm_client(settings)
         base64_image, mime_type = await ImageProcessor.process(hand_image)
@@ -46,4 +57,4 @@ async def analyze_palmistry(
         raise
     except Exception as e:
         logger.exception("Palmistry analysis failed")
-        raise HTTPException(status_code=500, detail=f"LLM invocation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Analysis failed. Please try again later.")
