@@ -42,6 +42,10 @@ class CostTracker:
         self.max_output_tokens = max_output_tokens
         self.safety_factor = safety_factor
 
+    def estimate_text_tokens(self, text: str) -> int:
+        """离线环境下的保守兜底：按 1 token ≈ 2 个字符估算。"""
+        return max(1, int(len(_token_str(text)) / 2))
+
     def estimate_input_tokens(self, messages: list[dict]) -> int:
         """保守估算 prompt tokens：字符数 / 2 * 安全系数。
 

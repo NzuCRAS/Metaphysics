@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Header, Depends
 from typing import Optional
 import logging
+import time
 
 from app.models.bazi import BaziRequest, BaziResponse
 from app.config import settings
@@ -61,10 +62,25 @@ async def analyze_bazi(
         if db is not None:
             await cost_tracker.check_budget(db, normalized)
 
+        llm_start = time.monotonic()
         report = await client.complete(normalized)
+        llm_duration = time.monotonic() - llm_start
+        logger.info(
+            "LLM call completed in %.2fs (provider=%s model=%s)",
+            llm_duration,
+            settings.llm_provider,
+            getattr(client, "model", "unknown"),
+        )
+
         cleaned_report = clean_report(report)
 
         usage = client.last_usage or {}
+        # 兜底：若底层未返回 token 用量，用字符数做保守估算，避免成本统计低估。
+        if usage.get("input_tokens") is None:
+            usage["input_tokens"] = cost_tracker.estimate_input_tokens(normalized)
+        if usage.get("output_tokens") is None and cleaned_report:
+            usage["output_tokens"] = cost_tracker.estimate_text_tokens(cleaned_report)
+
         cost = cost_tracker.compute_cost(usage)
         if db is not None:
             await record_event(

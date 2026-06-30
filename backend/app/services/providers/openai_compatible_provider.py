@@ -11,8 +11,23 @@ class OpenAICompatibleProvider(OpenAIProvider):
     本质上复用 OpenAIProvider，但要求传入 base_url。
     """
 
-    def __init__(self, base_url: str, api_key: str, model: str, max_tokens: int | None = None):
-        super().__init__(api_key=api_key, model=model, base_url=base_url, max_tokens=max_tokens)
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        model: str,
+        max_tokens: int | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+    ):
+        super().__init__(
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            max_tokens=max_tokens,
+            timeout=timeout,
+            max_retries=max_retries,
+        )
 
     @property
     def metadata(self) -> Dict[str, Any]:
@@ -25,12 +40,16 @@ class OpenAICompatibleProvider(OpenAIProvider):
 def create_llm_client(settings) -> LLMClient:
     provider = settings.llm_provider.lower()
     max_tokens = settings.llm_max_tokens or None
+    timeout = settings.llm_timeout
+    max_retries = settings.llm_max_retries
     if provider == "openai":
         return OpenAIProvider(
             api_key=settings.openai_api_key,
             model=settings.openai_model,
             base_url=settings.openai_base_url,
             max_tokens=max_tokens,
+            timeout=timeout,
+            max_retries=max_retries,
         )
     elif provider == "anthropic":
         return AnthropicProvider(
@@ -43,6 +62,8 @@ def create_llm_client(settings) -> LLMClient:
             api_key=settings.openai_compatible_api_key,
             model=settings.openai_compatible_model,
             max_tokens=max_tokens,
+            timeout=timeout,
+            max_retries=max_retries,
         )
     else:
         raise ValueError(f"Unsupported LLM provider: {settings.llm_provider}")

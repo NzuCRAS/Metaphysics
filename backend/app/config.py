@@ -30,8 +30,12 @@ class Settings(BaseSettings):
     openai_compatible_api_key: str = ""
     openai_compatible_model: str = ""
 
-    # 输出 token 上限，用于成本控制
-    llm_max_tokens: int = 8192
+    # 输出 token 上限，用于成本控制与生成速度
+    llm_max_tokens: int = 4096
+
+    # LLM 调用超时（秒）与重试次数，避免长时间挂起
+    llm_timeout: float = 120.0
+    llm_max_retries: int = 2
 
     # 成本控制：每日 LLM 花费上限（元）
     max_daily_cost_cny: float = 50.0

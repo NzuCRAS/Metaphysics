@@ -2,6 +2,7 @@ FROM nginx:alpine
 
 # 复制前端静态资源
 COPY index.html /usr/share/nginx/html/
+COPY admin.html /usr/share/nginx/html/
 COPY css/ /usr/share/nginx/html/css/
 COPY js/ /usr/share/nginx/html/js/
 

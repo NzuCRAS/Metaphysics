@@ -6,7 +6,15 @@ from app.services.llm_client import LLMClient
 
 
 class OpenAIProvider(LLMClient):
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini", base_url: str = "", max_tokens: int | None = None):
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "gpt-4o-mini",
+        base_url: str = "",
+        max_tokens: int | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+    ):
         self.api_key = api_key
         self.model = model
         self.base_url = base_url
@@ -16,8 +24,17 @@ class OpenAIProvider(LLMClient):
             kwargs["base_url"] = base_url
         if max_tokens:
             kwargs["max_tokens"] = max_tokens
+        if timeout is not None:
+            kwargs["timeout"] = timeout
+        if max_retries is not None:
+            kwargs["max_retries"] = max_retries
         self._client = ChatOpenAI(**kwargs)
         self._last_usage: Dict[str, Any] | None = None
+
+    @staticmethod
+    def _estimate_text_tokens(text: str) -> int:
+        """离线环境下对 token 数量的保守兜底估算（1 token ≈ 2 chars）。"""
+        return max(1, int(len(text) / 2))
 
     @staticmethod
     def _extract_usage(response) -> Dict[str, Any]:
@@ -50,6 +67,15 @@ class OpenAIProvider(LLMClient):
         lc_messages = self._to_lc_messages(messages)
         response = await self._client.ainvoke(lc_messages, **kwargs)
         self._last_usage = self._extract_usage(response)
+        # 若底层未返回 usage（部分私有化模型），按生成文本长度保守估算 output tokens，
+        # 避免成本统计低估导致日预算被突破。
+        if (
+            self._last_usage
+            and self._last_usage.get("output_tokens") is None
+            and isinstance(response.content, str)
+            and response.content
+        ):
+            self._last_usage["output_tokens"] = self._estimate_text_tokens(response.content)
         return response.content
 
     async def stream(self, messages: List[Dict[str, Any]], **kwargs) -> AsyncIterator[str]:
