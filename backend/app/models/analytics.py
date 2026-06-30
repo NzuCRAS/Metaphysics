@@ -43,7 +43,27 @@ class TrafficSummary(BaseModel):
     total_pageviews: int
     total_bazi_requests: int
     total_bazi_reports: int
+    total_palmistry_requests: int
+    total_palmistry_reports: int
     total_cost_cny: Decimal = Field(..., decimal_places=6)
+    unique_ips: int
     by_region: dict
+    cost_by_region: dict
     hourly: list
     half_hourly: list
+
+
+class EventRow(BaseModel):
+    id: int
+    event_type: str
+    region: str
+    ip_address: str
+    user_agent: Optional[str]
+    path: Optional[str]
+    timestamp: datetime
+    tokens_input: Optional[int]
+    tokens_output: Optional[int]
+    cost_cny: Optional[Decimal]
+
+    class Config:
+        from_attributes = True

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Header, Depends
 from typing import Optional
 import logging
-import time
 
 from app.models.bazi import BaziRequest, BaziResponse
 from app.config import settings
@@ -9,20 +8,15 @@ from app.db import get_db_optional
 from app.services.providers.openai_compatible_provider import create_llm_client
 from app.services.prompt_manager import prompt_manager
 from app.services.text_cleaner import clean_report
-from app.services.analytics import EVENT_BAZI_REQUEST, EVENT_BAZI_REPORT, record_event
-from app.services.cost_tracker import CostTracker
+from app.services.analytics import EVENT_BAZI_REQUEST, EVENT_BAZI_REPORT
+from app.services.llm_guard import complete_with_guard
 
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-cost_tracker = CostTracker(
-    input_price_per_m=settings.input_token_price_cny_per_m,
-    output_price_per_m=settings.output_token_price_cny_per_m,
-    max_daily_cny=settings.max_daily_cost_cny,
-    max_output_tokens=settings.llm_max_tokens,
-    safety_factor=settings.cost_safety_factor,
-)
+
+VALID_GENDERS = {"male", "female", "男", "女"}
 
 
 def _region(header: Optional[str]) -> str:
@@ -40,9 +34,6 @@ async def analyze_bazi(
 ):
     region = _region(x_region)
     try:
-        if db is not None:
-            await record_event(db, EVENT_BAZI_REQUEST, request, region)
-
         client = create_llm_client(settings)
         prompt = prompt_manager.get_bazi_prompt()
 
@@ -59,43 +50,21 @@ async def analyze_bazi(
             role = "human" if msg.type == "human" else "ai"
             normalized.append({"role": role, "content": msg.content})
 
-        if db is not None:
-            await cost_tracker.check_budget(db, normalized)
-
-        llm_start = time.monotonic()
-        report = await client.complete(normalized)
-        llm_duration = time.monotonic() - llm_start
-        logger.info(
-            "LLM call completed in %.2fs (provider=%s model=%s)",
-            llm_duration,
-            settings.llm_provider,
-            getattr(client, "model", "unknown"),
+        report, usage, metadata, cost = await complete_with_guard(
+            request=request,
+            db=db,
+            region=region,
+            client=client,
+            messages=normalized,
+            request_event_type=EVENT_BAZI_REQUEST,
+            report_event_type=EVENT_BAZI_REPORT,
         )
 
         cleaned_report = clean_report(report)
 
-        usage = client.last_usage or {}
-        # 兜底：若底层未返回 token 用量，用字符数做保守估算，避免成本统计低估。
-        if usage.get("input_tokens") is None:
-            usage["input_tokens"] = cost_tracker.estimate_input_tokens(normalized)
-        if usage.get("output_tokens") is None and cleaned_report:
-            usage["output_tokens"] = cost_tracker.estimate_text_tokens(cleaned_report)
-
-        cost = cost_tracker.compute_cost(usage)
-        if db is not None:
-            await record_event(
-                db,
-                EVENT_BAZI_REPORT,
-                request,
-                region,
-                tokens_input=usage.get("input_tokens"),
-                tokens_output=usage.get("output_tokens"),
-                cost_cny=cost,
-            )
-
         return BaziResponse(
             report=cleaned_report,
-            metadata={**client.metadata, "cost_cny": float(cost)},
+            metadata={**metadata, "cost_cny": float(cost)},
         )
     except HTTPException:
         raise

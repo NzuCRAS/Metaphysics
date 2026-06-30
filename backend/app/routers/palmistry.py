@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Form, UploadFile, File, HTTPException
+from fastapi import APIRouter, Form, UploadFile, File, HTTPException, Request, Depends
+from typing import Optional
 import logging
 
 from app.models.palmistry import PalmistryResponse
 from app.config import settings
+from app.db import get_db_optional
 from app.services.providers.openai_compatible_provider import create_llm_client
 from app.services.prompt_manager import prompt_manager
 from app.services.image_processor import ImageProcessor
 from app.services.text_cleaner import clean_report
+from app.services.analytics import EVENT_PALMISTRY_REQUEST, EVENT_PALMISTRY_REPORT
+from app.services.llm_guard import complete_with_guard
 
 
 router = APIRouter()
@@ -19,10 +23,13 @@ VALID_HANDS = {"left", "right", "左手", "右手"}
 
 @router.post("/palmistry", response_model=PalmistryResponse)
 async def analyze_palmistry(
+    request: Request,
     hand_image: UploadFile = File(...),
     gender: str = Form(...),
     dominant_hand: str = Form(...),
     uploaded_hand: str = Form(...),
+    x_region: Optional[str] = Header(default=None),
+    db: Optional = Depends(get_db_optional),
 ):
     if gender not in VALID_GENDERS:
         raise HTTPException(status_code=400, detail="Invalid gender value.")
@@ -30,6 +37,8 @@ async def analyze_palmistry(
         raise HTTPException(status_code=400, detail="Invalid dominant_hand value.")
     if uploaded_hand not in VALID_HANDS:
         raise HTTPException(status_code=400, detail="Invalid uploaded_hand value.")
+
+    region = x_region if x_region in {"cn", "eu", "us"} else "global"
 
     try:
         client = create_llm_client(settings)
@@ -50,9 +59,18 @@ async def analyze_palmistry(
 
         normalized = prompt_manager.attach_image_to_human(normalized, base64_image, mime_type)
 
-        report = await client.complete(normalized)
+        report, usage, metadata, cost = await complete_with_guard(
+            request=request,
+            db=db,
+            region=region,
+            client=client,
+            messages=normalized,
+            request_event_type=EVENT_PALMISTRY_REQUEST,
+            report_event_type=EVENT_PALMISTRY_REPORT,
+        )
+
         cleaned_report = clean_report(report)
-        return PalmistryResponse(report=cleaned_report, metadata=client.metadata)
+        return PalmistryResponse(report=cleaned_report, metadata={**metadata, "cost_cny": float(cost)})
     except HTTPException:
         raise
     except Exception as e:
