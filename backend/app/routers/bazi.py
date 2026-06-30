@@ -8,7 +8,7 @@ from app.db import get_db_optional
 from app.services.providers.openai_compatible_provider import create_llm_client
 from app.services.prompt_manager import prompt_manager
 from app.services.text_cleaner import clean_report
-from app.services.analytics import EVENT_BAZI_REQUEST, EVENT_BAZI_REPORT
+from app.services.analytics import ALLOWED_REGIONS, EVENT_BAZI_REQUEST, EVENT_BAZI_REPORT
 from app.services.llm_guard import complete_with_guard
 
 
@@ -20,7 +20,7 @@ VALID_GENDERS = {"male", "female", "男", "女"}
 
 
 def _region(header: Optional[str]) -> str:
-    if header in {"cn", "eu", "us"}:
+    if header in ALLOWED_REGIONS:
         return header
     return "global"
 

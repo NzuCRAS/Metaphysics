@@ -12,11 +12,11 @@ const EVENT_COLORS = {
 };
 
 const EVENT_LABELS = {
-  pageview: "Page view",
-  bazi_request: "BaZi request",
-  bazi_report: "BaZi report",
-  palmistry_request: "Palmistry request",
-  palmistry_report: "Palmistry report",
+  pageview: "页面访问",
+  bazi_request: "八字请求",
+  bazi_report: "八字报告",
+  palmistry_request: "手相请求",
+  palmistry_report: "手相报告",
 };
 
 const PAGE_SIZE = 100;
@@ -68,7 +68,7 @@ function getInputs() {
   const token = getToken();
   const date = dateInput.value;
   if (!token || !date) {
-    showError("Please enter both admin token and date.");
+    showError("请输入管理 Token 和日期。");
     return null;
   }
   return { token, date };
@@ -224,7 +224,8 @@ function formatTime(iso) {
 }
 
 function eventTag(type) {
-  return `<span class="tag tag-${type}">${type.replace("_", " ")}</span>`;
+  const label = EVENT_LABELS[type] || type;
+  return `<span class="tag tag-${type}">${label}</span>`;
 }
 
 function renderEventLog(events) {
@@ -246,7 +247,7 @@ function renderEventLog(events) {
         </tr>`;
     })
     .join("");
-  document.getElementById("page-info").textContent = `Page ${Math.floor(currentOffset / PAGE_SIZE) + 1}`;
+  document.getElementById("page-info").textContent = `第 ${Math.floor(currentOffset / PAGE_SIZE) + 1} 页`;
 }
 
 async function loadDashboard() {
@@ -269,7 +270,7 @@ async function loadDashboard() {
 
     dashboardEl.classList.remove("hidden");
   } catch (err) {
-    showError(err.message || "Failed to load dashboard.");
+    showError(err.message || "加载仪表盘失败。");
     dashboardEl.classList.add("hidden");
   }
 }
@@ -286,7 +287,7 @@ async function changePage(delta) {
     currentEvents = events;
     renderEventLog(currentEvents);
   } catch (err) {
-    showError(err.message || "Failed to load events.");
+    showError(err.message || "加载事件失败。");
   }
 }
 
@@ -315,7 +316,7 @@ document.getElementById("download-report").addEventListener("click", async () =>
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (err) {
-    showError(err.message || "Failed to download report.");
+    showError(err.message || "下载报告失败。");
   }
 });
 

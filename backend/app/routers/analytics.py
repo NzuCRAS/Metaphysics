@@ -8,6 +8,7 @@ from app.config import settings
 from app.db import get_db_optional
 from app.models.analytics import EventRow
 from app.services.analytics import (
+    ALLOWED_REGIONS,
     EVENT_PAGEVIEW,
     get_daily_events,
     get_daily_summary,
@@ -20,7 +21,7 @@ router = APIRouter()
 
 
 def _region(header: Optional[str]) -> str:
-    if header in {"cn", "eu", "us"}:
+    if header in ALLOWED_REGIONS:
         return header
     return "global"
 

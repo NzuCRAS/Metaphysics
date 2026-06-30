@@ -504,6 +504,12 @@ h2 {
   color: var(--muted);
 }
 
+.loading-note {
+  font-size: 13px;
+  color: var(--gold-bright);
+  margin-top: 8px;
+}
+
 .loading.hidden {
   display: none;
 }

@@ -43,8 +43,11 @@ def _get_client_ip(request: Request) -> str:
     return "unknown"
 
 
+ALLOWED_REGIONS = {"1", "2", "3"}
+
+
 def _validate_region(region: Optional[str]) -> str:
-    if region in {"cn", "eu", "us"}:
+    if region in ALLOWED_REGIONS:
         return region
     return "global"
 

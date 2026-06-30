@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DaoFortune · Traffic Dashboard</title>
+    <title>DaoFortune · 流量仪表盘</title>
     <link rel="stylesheet" href="/css/style.css?v=4" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
     <style>
@@ -188,19 +188,19 @@
       <div class="admin-topbar">
         <a class="brand" href="/" aria-label="DaoFortune home">
           <span class="brand-mark" aria-hidden="true">☯</span>
-          <span class="admin-title">DaoFortune Traffic Dashboard</span>
+          <span class="admin-title">DaoFortune 流量仪表盘</span>
         </a>
         <div class="admin-controls">
           <label>
-            <span>Admin token</span>
-            <input id="admin-token" type="password" placeholder="Bearer token" />
+            <span>管理 Token</span>
+            <input id="admin-token" type="password" placeholder="输入 ADMIN_TOKEN" />
           </label>
           <label>
-            <span>Date (UTC)</span>
+            <span>日期（UTC）</span>
             <input id="report-date" type="date" />
           </label>
-          <button id="load-dashboard" type="button">Load dashboard</button>
-          <button id="download-report" class="secondary" type="button">Download .txt</button>
+          <button id="load-dashboard" type="button">加载仪表盘</button>
+          <button id="download-report" class="secondary" type="button">下载 .txt</button>
         </div>
       </div>
 
@@ -209,52 +209,52 @@
       <div id="dashboard" class="hidden">
         <div class="cards-grid">
           <div class="metric-card">
-            <div class="label">Page Views</div>
+            <div class="label">页面浏览量</div>
             <div class="value" id="card-pv">0</div>
           </div>
           <div class="metric-card">
-            <div class="label">BaZi Requests</div>
+            <div class="label">八字请求</div>
             <div class="value" id="card-bazi-req">0</div>
           </div>
           <div class="metric-card">
-            <div class="label">BaZi Reports</div>
+            <div class="label">八字报告</div>
             <div class="value" id="card-bazi-rpt">0</div>
           </div>
           <div class="metric-card">
-            <div class="label">Palmistry Reports</div>
+            <div class="label">手相报告</div>
             <div class="value" id="card-palm-rpt">0</div>
           </div>
           <div class="metric-card">
-            <div class="label">Unique IPs</div>
+            <div class="label">独立 IP</div>
             <div class="value" id="card-ips">0</div>
           </div>
           <div class="metric-card">
-            <div class="label">Total Cost (CNY)</div>
+            <div class="label">总花费（CNY）</div>
             <div class="value" id="card-cost">0.0000</div>
           </div>
         </div>
 
         <div class="charts-grid">
           <div class="panel">
-            <h3>Hourly traffic</h3>
+            <h3>每小时流量</h3>
             <div class="chart-wrap">
               <canvas id="hourly-chart"></canvas>
             </div>
           </div>
           <div class="panel">
-            <h3>30-minute traffic</h3>
+            <h3>每 30 分钟流量</h3>
             <div class="chart-wrap">
               <canvas id="halfhour-chart"></canvas>
             </div>
           </div>
           <div class="panel">
-            <h3>By region</h3>
+            <h3>按分流线路</h3>
             <div class="chart-wrap">
               <canvas id="region-chart"></canvas>
             </div>
           </div>
           <div class="panel">
-            <h3>Cost by region (CNY)</h3>
+            <h3>各线路花费（CNY）</h3>
             <div class="chart-wrap">
               <canvas id="cost-chart"></canvas>
             </div>
@@ -263,43 +263,43 @@
 
         <div class="tables-grid">
           <div class="panel">
-            <h3>Region breakdown</h3>
+            <h3>线路汇总</h3>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Region</th>
+                  <th>线路</th>
                   <th>PV</th>
-                  <th>Req</th>
-                  <th>Rpt</th>
-                  <th>Cost</th>
+                  <th>请求</th>
+                  <th>报告</th>
+                  <th>花费</th>
                 </tr>
               </thead>
               <tbody id="region-table"></tbody>
             </table>
           </div>
           <div class="panel">
-            <h3>Hourly breakdown</h3>
+            <h3>每小时汇总</h3>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Hour</th>
+                  <th>小时</th>
                   <th>PV</th>
-                  <th>Req</th>
-                  <th>Rpt</th>
+                  <th>请求</th>
+                  <th>报告</th>
                 </tr>
               </thead>
               <tbody id="hourly-table"></tbody>
             </table>
           </div>
           <div class="panel">
-            <h3>30-minute breakdown</h3>
+            <h3>每 30 分钟汇总</h3>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Slot</th>
+                  <th>时间段</th>
                   <th>PV</th>
-                  <th>Req</th>
-                  <th>Rpt</th>
+                  <th>请求</th>
+                  <th>报告</th>
                 </tr>
               </thead>
               <tbody id="halfhour-table"></tbody>
@@ -307,35 +307,35 @@
           </div>
 
           <div class="panel event-log-panel">
-            <h3>Event log (newest first)</h3>
+            <h3>事件日志（最新在前）</h3>
             <div class="event-log">
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Type</th>
-                    <th>Region</th>
+                    <th>时间</th>
+                    <th>类型</th>
+                    <th>线路</th>
                     <th>IP</th>
-                    <th>Path</th>
-                    <th>Tokens in</th>
-                    <th>Tokens out</th>
-                    <th>Cost</th>
-                    <th>User-Agent</th>
+                    <th>路径</th>
+                    <th>输入 tokens</th>
+                    <th>输出 tokens</th>
+                    <th>花费</th>
+                    <th>浏览器</th>
                   </tr>
                 </thead>
                 <tbody id="event-log-table"></tbody>
               </table>
             </div>
             <div class="pagination">
-              <button id="prev-page" type="button">Previous</button>
-              <span id="page-info">Page 1</span>
-              <button id="next-page" type="button">Next</button>
+              <button id="prev-page" type="button">上一页</button>
+              <span id="page-info">第 1 页</span>
+              <button id="next-page" type="button">下一页</button>
             </div>
           </div>
         </div>
       </div>
     </main>
 
-    <script src="/js/admin.js?v=5"></script>
+    <script src="/js/admin.js?v=6"></script>
   </body>
 </html>

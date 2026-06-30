@@ -9,7 +9,11 @@ from app.services.providers.openai_compatible_provider import create_llm_client
 from app.services.prompt_manager import prompt_manager
 from app.services.image_processor import ImageProcessor
 from app.services.text_cleaner import clean_report
-from app.services.analytics import EVENT_PALMISTRY_REQUEST, EVENT_PALMISTRY_REPORT
+from app.services.analytics import (
+    ALLOWED_REGIONS,
+    EVENT_PALMISTRY_REQUEST,
+    EVENT_PALMISTRY_REPORT,
+)
 from app.services.llm_guard import complete_with_guard
 
 
@@ -38,7 +42,7 @@ async def analyze_palmistry(
     if uploaded_hand not in VALID_HANDS:
         raise HTTPException(status_code=400, detail="Invalid uploaded_hand value.")
 
-    region = x_region if x_region in {"cn", "eu", "us"} else "global"
+    region = x_region if x_region in ALLOWED_REGIONS else "global"
 
     try:
         client = create_llm_client(settings)

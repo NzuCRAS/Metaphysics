@@ -37,11 +37,12 @@ const copy = {
   copied: "Copied",
   failed: "Failed",
   loadingText: "Consulting the AI master, please wait...",
+  loadingNote: "AI master is thinking, it may take a long time.",
   errorPrefix: "Analysis failed",
   footerNote: "For entertainment and cultural study only. Please view the results rationally.",
 };
 
-const ALLOWED_REGIONS = ["cn", "eu", "us"];
+const ALLOWED_REGIONS = ["1", "2", "3"];
 function detectRegion() {
   const segment = window.location.pathname.split("/").filter(Boolean)[0] || "";
   return ALLOWED_REGIONS.includes(segment) ? segment : "global";
