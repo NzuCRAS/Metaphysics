@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import AsyncIterator, List, Dict, Any, Union
+from typing import AsyncIterator, List, Dict, Any, Union, Optional
 
 
 class LLMClient(ABC):
@@ -33,6 +33,11 @@ class LLMClient(ABC):
     def metadata(self) -> Dict[str, Any]:
         """返回当前 Provider 的元数据，用于接口响应。"""
         pass
+
+    @property
+    def last_usage(self) -> Optional[Dict[str, Any]]:
+        """返回最近一次 complete/stream 调用的 token 使用统计（若可用）。"""
+        return getattr(self, "_last_usage", None)
 
     def _normalize_messages(
         self, messages: List[Dict[str, Any]]

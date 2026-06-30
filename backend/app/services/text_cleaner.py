@@ -15,10 +15,12 @@ DISCLAIMER_PATTERNS = [
     r"以下\s*(?:内容|回答|分析|文本)?\s*由\s*(?:人工智能|大模型|语言模型)[^\n]*",
     r"本\s*(?:内容|回答|分析|文本)?\s*由\s*(?:人工智能|大模型|语言模型)[^\n]*",
     # 英文
-    r"^\s*The\s+above\s+content\s+was\s+generated\s+by\s+[^\n]*(?:AI|DeepSeek|model)[^\n]*",
-    r"^\s*The\s+following\s+content\s+was\s+generated\s+by\s+[^\n]*(?:AI|DeepSeek|model)[^\n]*",
-    r"^\s*This\s+content\s+was\s+generated\s+by\s+[^\n]*(?:AI|DeepSeek|model)[^\n]*",
-    r"^\s*Generated\s+by\s+[^\n]*(?:AI|DeepSeek|model)[^\n]*",
+    r"^\s*Disclaimer: This (?:content|report|analysis|response|text)? (?:is|was) (?:generated|created|provided|written) by [^\n]*(?:AI|DeepSeek|model|artificial intelligence|language model|large language model)[^\n]*",
+    r"^\s*Note: This (?:content|report|analysis|response|text)? (?:is|was) (?:generated|created|provided|written) by [^\n]*(?:AI|DeepSeek|model|artificial intelligence|language model|large language model)[^\n]*",
+    r"^\s*This (?:content|report|analysis|response|text)? (?:is|was) (?:generated|created|provided|written) by (?:an? )?(?:AI|artificial intelligence|DeepSeek|language model|large language model)[^\n]*",
+    r"^\s*The (?:content|report|analysis|response|text)? (?:above|below|in this document)?\s*(?:is|was) (?:generated|created|provided|written) by (?:an? )?(?:AI|artificial intelligence|DeepSeek|language model|large language model)[^\n]*",
+    r"^\s*The (?:above|below|following)\s+(?:content|report|analysis|response|text)\s*(?:is|was) (?:generated|created|provided|written) by (?:an? )?(?:AI|artificial intelligence|DeepSeek|language model|large language model)[^\n]*",
+    r"^\s*Generated\s+by\s+(?:an?\s+)?(?:AI|artificial intelligence|DeepSeek|language model|large language model|model)[^\n]*",
 ]
 
 

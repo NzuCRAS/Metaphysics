@@ -87,6 +87,35 @@ OPENAI_COMPATIBLE_API_KEY=sk-xxxxxxxx
 OPENAI_COMPATIBLE_MODEL=qwen-vl-max
 ```
 
+### 成本与流量监控配置
+
+```bash
+# 每日 LLM 花费上限（元）
+MAX_DAILY_COST_CNY=50.0
+INPUT_TOKEN_PRICE_CNY_PER_M=3.0
+OUTPUT_TOKEN_PRICE_CNY_PER_M=6.0
+LLM_MAX_TOKENS=8192
+
+# 管理后台 Token（用于下载流量报告）
+ADMIN_TOKEN=your_secure_admin_token
+```
+
+成本按 token 统计；当今日累计花费达到 `MAX_DAILY_COST_CNY` 时，新的命理报告请求会返回 429。
+
+## 流量监控与报告下载
+
+- 访问 `http://your-server-ip/admin` 打开管理页面。
+- 输入 `ADMIN_TOKEN` 和日期后，可查看汇总或下载 `.txt` 格式的每日流量详情报告。
+- 报告包含：总 PV、BaZi 请求数、报告生成数、LLM 花费、按地区汇总、按小时 / 30 分钟粒度拆分，以及完整访问日志（IP、UA、路径、时间戳）。
+
+### 导出原始数据
+
+也可直接在 PostgreSQL 中查询 `analytics_events` 表：
+
+```bash
+sudo docker exec metaphysics-postgres psql -U metaphysics -d metaphysics -c "SELECT * FROM analytics_events ORDER BY timestamp DESC LIMIT 20;"
+```
+
 ### 3. 启动服务
 
 ```bash

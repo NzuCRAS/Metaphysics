@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#050403" />
-    <title>命理通 · DaoFortune</title>
-    <link rel="stylesheet" href="css/style.css?v=3" />
+    <title>DaoFortune · BaZi Reading</title>
+    <link rel="stylesheet" href="/css/style.css?v=4" />
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"
             integrity="sha384-NNQgBjjuhtXzPmmy4gurS5X7P4uTt1DThyevz4Ua0IVK5+kazYQI1W27JHjbbxQz"
             crossorigin="anonymous"></script>
@@ -14,28 +14,25 @@
             crossorigin="anonymous"></script>
   </head>
   <body>
-    <main class="site-shell" aria-label="命理通八字咨询">
+    <main class="site-shell" aria-label="DaoFortune BaZi reading">
       <section class="hero">
         <nav class="topbar" aria-label="Primary">
-          <a class="brand" href="#" aria-label="命理通首页">
+          <a class="brand" href="/" aria-label="DaoFortune home">
             <span class="brand-mark" aria-hidden="true">☯</span>
-            <span>命理通</span>
+            <span>DaoFortune</span>
           </a>
-          <button class="language-toggle" type="button" data-language-toggle aria-label="Switch language">
-            <span data-i18n="languageLabel">EN</span>
-          </button>
         </nav>
 
         <div class="hero-grid">
           <section class="hero-copy" aria-labelledby="hero-title">
-            <p class="eyebrow" data-i18n="eyebrow">给现代探索者的东方命理咨询</p>
-            <h1 id="hero-title" data-i18n="heroTitle">以安静而精准的方式解读你的八字命盘。</h1>
+            <p class="eyebrow" data-i18n="eyebrow">Eastern destiny reading for modern seekers</p>
+            <h1 id="hero-title" data-i18n="heroTitle">Decode your BaZi birth chart with quiet precision.</h1>
             <p class="hero-text" data-i18n="heroText">
-              填写出生信息，即可获得一份融合四柱、五行与道家气质的八字命理分析报告。
+              Share your birth details and receive a culturally rooted Four Pillars reading, designed for a global audience with a refined Taoist atmosphere.
             </p>
             <div class="hero-actions">
-              <a class="primary-link" href="#reading-form" data-i18n="startButton">开始填写</a>
-              <span data-i18n="privacyNote">这里只收集资料，当前页面不涉及付款。</span>
+              <a class="primary-link" href="#reading-form" data-i18n="startButton">Start reading</a>
+              <span data-i18n="privacyNote">Private intake. No payment on this screen.</span>
             </div>
           </section>
 
@@ -51,7 +48,7 @@
               <span>庚</span>
               <span>辰</span>
             </div>
-            <p data-i18n="panelCaption">四柱、五行，与一个人的生命节律。</p>
+            <p data-i18n="panelCaption">Four pillars, five elements, one personal rhythm.</p>
           </aside>
         </div>
       </section>
@@ -59,82 +56,82 @@
       <section class="content-band" aria-label="Birth details">
         <form class="intake-card" id="reading-form">
           <div class="form-head">
-            <p class="eyebrow" data-i18n="formEyebrow">出生资料</p>
-            <h2 data-i18n="formTitle">告诉我们，你的命盘从哪里开始。</h2>
+            <p class="eyebrow" data-i18n="formEyebrow">Birth information</p>
+            <h2 data-i18n="formTitle">Tell us where your life chart begins.</h2>
           </div>
 
           <div class="field-grid">
             <label class="field">
-              <span data-i18n="birthDateLabel">出生年月日</span>
+              <span data-i18n="birthDateLabel">Date of birth</span>
               <input name="birthDate" type="date" required />
             </label>
 
             <label class="field">
-              <span data-i18n="birthTimeLabel">出生时间</span>
+              <span data-i18n="birthTimeLabel">Time of birth</span>
               <input name="birthTime" type="time" required />
             </label>
 
             <label class="field">
-              <span data-i18n="genderLabel">性别</span>
+              <span data-i18n="genderLabel">Gender</span>
               <select name="gender" required>
-                <option value="" data-i18n="genderPlaceholder">请选择</option>
-                <option value="male" data-i18n="genderMale">男</option>
-                <option value="female" data-i18n="genderFemale">女</option>
+                <option value="" data-i18n="genderPlaceholder">Select gender</option>
+                <option value="male" data-i18n="genderMale">Male</option>
+                <option value="female" data-i18n="genderFemale">Female</option>
               </select>
             </label>
 
             <label class="field">
-              <span data-i18n="birthPlaceLabel">出生地</span>
-              <input name="birthPlace" type="text" autocomplete="address-level2" placeholder="城市，国家" data-i18n-placeholder="birthPlacePlaceholder" required />
+              <span data-i18n="birthPlaceLabel">Place of birth</span>
+              <input name="birthPlace" type="text" autocomplete="address-level2" placeholder="City, country" data-i18n-placeholder="birthPlacePlaceholder" required />
             </label>
           </div>
 
           <div class="support-row">
             <label class="field compact">
-              <span data-i18n="calendarLabel">历法</span>
+              <span data-i18n="calendarLabel">Calendar</span>
               <select name="calendar">
-                <option value="solar" data-i18n="calendarSolar">公历 / 阳历</option>
-                <option value="lunar" data-i18n="calendarLunar">农历 / 阴历</option>
+                <option value="solar" data-i18n="calendarSolar">Solar / Gregorian</option>
+                <option value="lunar" data-i18n="calendarLunar">Lunar</option>
               </select>
             </label>
 
             <label class="consent">
               <input type="checkbox" name="consent" required />
-              <span data-i18n="consentText">我确认填写的信息足够准确，可用于八字解读。</span>
+              <span data-i18n="consentText">I confirm the information is accurate enough for a BaZi reading.</span>
             </label>
           </div>
 
-          <button class="submit-button" type="submit" data-i18n="submitButton">查看我的命盘</button>
-          <p class="form-note" data-i18n="formNote">提示：如果不知道准确出生时间，可以先留空，我们仍可准备基础解读。</p>
+          <button class="submit-button" type="submit" data-i18n="submitButton">Reveal my chart</button>
+          <p class="form-note" data-i18n="formNote">Tip: if you do not know the exact birth time, leave it blank and we can still prepare a general reading.</p>
         </form>
 
         <aside class="summary-card" aria-live="polite">
-          <p class="eyebrow" data-i18n="summaryEyebrow">资料预览</p>
-          <h2 data-i18n="summaryTitle">你的资料正在等待填写。</h2>
+          <p class="eyebrow" data-i18n="summaryEyebrow">Reading preview</p>
+          <h2 data-i18n="summaryTitle">Your intake is waiting.</h2>
           <dl>
             <div>
-              <dt data-i18n="summaryDate">日期</dt>
+              <dt data-i18n="summaryDate">Date</dt>
               <dd data-summary="birthDate">--</dd>
             </div>
             <div>
-              <dt data-i18n="summaryTime">时间</dt>
+              <dt data-i18n="summaryTime">Time</dt>
               <dd data-summary="birthTime">--</dd>
             </div>
             <div>
-              <dt data-i18n="summaryGender">性别</dt>
+              <dt data-i18n="summaryGender">Gender</dt>
               <dd data-summary="gender">--</dd>
             </div>
             <div>
-              <dt data-i18n="summaryPlace">出生地</dt>
+              <dt data-i18n="summaryPlace">Birthplace</dt>
               <dd data-summary="birthPlace">--</dd>
             </div>
           </dl>
           <div class="element-strip" aria-hidden="true">
-            <span>木</span>
-            <span>火</span>
-            <span>土</span>
-            <span>金</span>
-            <span>水</span>
+            <span>Wood</span>
+            <span>Fire</span>
+            <span>Earth</span>
+            <span>Metal</span>
+            <span>Water</span>
           </div>
         </aside>
       </section>
@@ -143,15 +140,15 @@
         <div class="result-card">
           <div class="result-header">
             <div>
-              <p class="eyebrow" data-i18n="resultEyebrow">分析报告</p>
-              <h2 data-i18n="resultTitle">八字命理分析</h2>
+              <p class="eyebrow" data-i18n="resultEyebrow">Analysis report</p>
+              <h2 data-i18n="resultTitle">Reading result</h2>
             </div>
-            <button id="copy-report" class="secondary-button" type="button" data-i18n="copyReport">复制全文</button>
+            <button id="copy-report" class="secondary-button" type="button" data-i18n="copyReport">Copy report</button>
           </div>
 
           <div id="loading" class="loading hidden">
             <div class="spinner"></div>
-            <p data-i18n="loadingText">正在请教 AI 命理大师，请稍候...</p>
+            <p data-i18n="loadingText">Consulting the AI master, please wait...</p>
           </div>
 
           <div id="result-content" class="result-content markdown-body"></div>
@@ -160,12 +157,12 @@
       </section>
 
       <footer class="site-footer">
-        <p data-i18n="footerNote">本应用仅供娱乐与文化研究，命理结果仅供参考，请理性看待。</p>
+        <p data-i18n="footerNote">For entertainment and cultural study only. Please view the results rationally.</p>
       </footer>
 
       <div class="toast" role="status" aria-live="polite"></div>
     </main>
 
-    <script src="js/app.js?v=3"></script>
+    <script src="/js/app.js?v=4"></script>
   </body>
 </html>

@@ -3,20 +3,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.config import settings
-from app.routers import bazi, palmistry
+from app.db import init_db
+from app.routers import bazi, palmistry, analytics
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动时可以初始化数据库连接池、Redis 连接等
-    # 1.0 版本保持无状态，仅预留
+    # 启动时初始化数据库表
+    await init_db()
     yield
     # 关闭时清理资源
 
 
 app = FastAPI(
     title="Metaphysics Fortune API",
-    description="八字算命与看手相 Web App 后端 API",
+    description="BaZi fortune-telling Web App backend API",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -30,10 +31,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(bazi.router, prefix="/api/v1", tags=["八字算命"])
-app.include_router(palmistry.router, prefix="/api/v1", tags=["看手相"])
+app.include_router(bazi.router, prefix="/api/v1", tags=["BaZi"])
+app.include_router(palmistry.router, prefix="/api/v1", tags=["Palmistry"])
+app.include_router(analytics.router, prefix="/api/v1", tags=["Analytics"])
 
 
-@app.get("/health", tags=["健康检查"])
+@app.get("/health", tags=["Health"])
 async def health_check():
     return {"status": "ok", "version": "1.0.0"}

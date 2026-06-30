@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DaoFortune · Traffic Admin</title>
+    <link rel="stylesheet" href="/css/style.css?v=4" />
+  </head>
+  <body>
+    <main class="site-shell" style="padding: 2rem; max-width: 720px; margin: 0 auto;">
+      <nav class="topbar" aria-label="Primary" style="margin-bottom: 2rem;">
+        <a class="brand" href="/" aria-label="DaoFortune home">
+          <span class="brand-mark" aria-hidden="true">☯</span>
+          <span>DaoFortune Admin</span>
+        </a>
+      </nav>
+
+      <section class="intake-card">
+        <div class="form-head">
+          <p class="eyebrow">Analytics</p>
+          <h2>Daily traffic &amp; budget report</h2>
+        </div>
+
+        <div class="field-grid">
+          <label class="field">
+            <span>Admin token</span>
+            <input id="admin-token" type="password" placeholder="Enter ADMIN_TOKEN" />
+          </label>
+
+          <label class="field">
+            <span>Date</span>
+            <input id="report-date" type="date" />
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+          <button id="load-summary" class="submit-button" type="button">Load summary</button>
+          <button id="download-report" class="secondary-button" type="button">Download report (.txt)</button>
+        </div>
+
+        <pre id="summary-output" class="result-content markdown-body" style="margin-top: 1.5rem; white-space: pre-wrap;"></pre>
+        <div id="error-message" class="error-message hidden"></div>
+      </section>
+    </main>
+
+    <script src="/js/admin.js?v=4"></script>
+  </body>
+</html>

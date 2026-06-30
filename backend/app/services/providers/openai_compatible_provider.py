@@ -1,6 +1,7 @@
 from typing import List, Dict, Any
 
 from app.services.providers.openai_provider import OpenAIProvider
+from app.services.providers.anthropic_provider import AnthropicProvider
 from app.services.llm_client import LLMClient
 
 
@@ -10,21 +11,26 @@ class OpenAICompatibleProvider(OpenAIProvider):
     本质上复用 OpenAIProvider，但要求传入 base_url。
     """
 
-    def __init__(self, base_url: str, api_key: str, model: str):
-        super().__init__(api_key=api_key, model=model, base_url=base_url)
+    def __init__(self, base_url: str, api_key: str, model: str, max_tokens: int | None = None):
+        super().__init__(api_key=api_key, model=model, base_url=base_url, max_tokens=max_tokens)
 
     @property
     def metadata(self) -> Dict[str, Any]:
-        return {"provider": "openai_compatible", "model": self.model}
+        data = {"provider": "openai_compatible", "model": self.model}
+        if self._last_usage:
+            data["usage"] = self._last_usage
+        return data
 
 
 def create_llm_client(settings) -> LLMClient:
     provider = settings.llm_provider.lower()
+    max_tokens = settings.llm_max_tokens or None
     if provider == "openai":
         return OpenAIProvider(
             api_key=settings.openai_api_key,
             model=settings.openai_model,
             base_url=settings.openai_base_url,
+            max_tokens=max_tokens,
         )
     elif provider == "anthropic":
         return AnthropicProvider(
@@ -36,6 +42,7 @@ def create_llm_client(settings) -> LLMClient:
             base_url=settings.openai_compatible_base_url,
             api_key=settings.openai_compatible_api_key,
             model=settings.openai_compatible_model,
+            max_tokens=max_tokens,
         )
     else:
         raise ValueError(f"Unsupported LLM provider: {settings.llm_provider}")

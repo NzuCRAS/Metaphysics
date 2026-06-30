@@ -30,6 +30,18 @@ class Settings(BaseSettings):
     openai_compatible_api_key: str = ""
     openai_compatible_model: str = ""
 
+    # 输出 token 上限，用于成本控制
+    llm_max_tokens: int = 8192
+
+    # 成本控制：每日 LLM 花费上限（元）
+    max_daily_cost_cny: float = 50.0
+    input_token_price_cny_per_m: float = 3.0  # DeepSeek V4-Pro 缓存未命中价
+    output_token_price_cny_per_m: float = 6.0
+    cost_safety_factor: float = 1.5  # token 估算安全系数
+
+    # 管理后台下载流量报告
+    admin_token: str = ""
+
     # 预留中间件
     database_url: str = ""
     redis_url: str = ""
@@ -37,6 +49,10 @@ class Settings(BaseSettings):
     @property
     def is_development(self) -> bool:
         return self.app_env.lower() == "development"
+
+    @property
+    def analytics_enabled(self) -> bool:
+        return bool(self.database_url)
 
 
 settings = Settings()
