@@ -94,7 +94,9 @@ OPENAI_COMPATIBLE_MODEL=qwen-vl-max
 MAX_DAILY_COST_CNY=50.0
 INPUT_TOKEN_PRICE_CNY_PER_M=3.0
 OUTPUT_TOKEN_PRICE_CNY_PER_M=6.0
-LLM_MAX_TOKENS=8192
+LLM_MAX_TOKENS=4096
+LLM_TIMEOUT=120
+LLM_MAX_RETRIES=2
 
 # 管理后台 Token（用于下载流量报告）
 ADMIN_TOKEN=your_secure_admin_token
@@ -263,8 +265,9 @@ sudo docker exec metaphysics-frontend wget -qO- http://backend:8000/health
 
 ### LLM 调用超时
 
-大模型响应可能较慢，Nginx 与后端均已设置 300 秒超时。如仍超时，可考虑：
+后端通过 `LLM_TIMEOUT`（默认 120 秒）控制单次 LLM 调用等待时间；Nginx `proxy_read_timeout` 保持 300 秒兜底。如仍超时或响应过慢，可考虑：
 - 使用更快的模型
+- 减小 `LLM_MAX_TOKENS`
 - 前端改为流式输出（后续版本支持）
 
 ## 后续扩展
