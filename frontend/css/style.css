@@ -395,11 +395,13 @@ h2 {
   min-width: 0;
 }
 
-.time-parts .ampm-toggle {
+.time-parts .pill-toggle {
   flex: 0 0 auto;
 }
 
-.ampm-toggle {
+.pill-toggle {
+  --options: 2;
+  --index: 0;
   position: relative;
   display: inline-flex;
   width: 130px;
@@ -411,7 +413,12 @@ h2 {
   overflow: hidden;
 }
 
-.ampm-toggle button {
+.pill-toggle[data-options="3"] {
+  --options: 3;
+  width: 180px;
+}
+
+.pill-toggle button {
   position: relative;
   z-index: 2;
   flex: 1;
@@ -426,27 +433,24 @@ h2 {
   transition: color 0.2s;
 }
 
-.ampm-toggle button.active {
+.pill-toggle button.active {
   color: var(--black);
 }
 
-.ampm-toggle .ampm-knob {
+.pill-toggle .pill-knob {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: calc(50% - 3px);
+  width: calc((100% - 6px) / var(--options, 2));
   height: calc(100% - 6px);
   border-radius: 999px;
   background: linear-gradient(135deg, var(--gold-bright), var(--gold));
-  transition: left 0.25s ease;
+  transition: transform 0.25s ease;
+  transform: translateX(calc(100% * var(--index, 0)));
   z-index: 1;
 }
 
-.ampm-toggle.pm .ampm-knob {
-  left: 50%;
-}
-
-.ampm-toggle.field-error {
+.pill-toggle.field-error {
   border-color: var(--red-bright);
 }
 

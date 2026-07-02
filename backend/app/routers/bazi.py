@@ -17,7 +17,7 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-VALID_GENDERS = {"male", "female", "男", "女"}
+VALID_GENDERS = {"male", "female", "other", "男", "女"}
 
 
 def _region(header: Optional[str]) -> str:

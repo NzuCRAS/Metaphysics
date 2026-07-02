@@ -23,6 +23,9 @@ const copy = {
   genderPlaceholder: "Select gender",
   genderFemale: "Female",
   genderMale: "Male",
+  genderOther: "Other",
+  ampmAm: "AM",
+  ampmPm: "PM",
   birthPlaceLabel: "Place of birth",
   birthPlacePlaceholder: "City, country",
   calendarLabel: "Calendar",
@@ -48,6 +51,12 @@ const copy = {
   loadingNote: "AI master is thinking, it may take a long time.",
   errorPrefix: "Analysis failed",
   footerNote: "For entertainment and cultural study only. Please view the results rationally.",
+};
+
+const GENDER_LABELS = {
+  male: copy.genderMale,
+  female: copy.genderFemale,
+  other: copy.genderOther,
 };
 
 const ALLOWED_REGIONS = ["sun", "luna", "dirt"];
@@ -104,7 +113,7 @@ function updateSummary() {
 
   const gender = data.get("gender");
   document.querySelector('[data-summary="gender"]').textContent = gender
-    ? labelForSelect("gender", gender)
+    ? GENDER_LABELS[gender] || gender
     : copy.missing;
 }
 
@@ -166,45 +175,60 @@ function validateTimeParts() {
 }
 
 function clearFieldErrors() {
-  DATE_PARTS.concat(TIME_PARTS).forEach((name) => {
-    const el = form.elements[name];
-    if (el) el.classList.remove("field-error");
+  form.querySelectorAll(".field-error").forEach((el) => {
+    el.classList.remove("field-error");
   });
-  const ampmToggle = document.querySelector(".ampm-toggle");
-  if (ampmToggle) ampmToggle.classList.remove("field-error");
 }
 
 function markFieldError(names) {
   names.forEach((name) => {
-    if (name === "ampm") {
-      const ampmToggle = document.querySelector(".ampm-toggle");
-      if (ampmToggle) ampmToggle.classList.add("field-error");
+    const el = form.elements[name];
+    if (!el) return;
+    const toggle = el.closest(".pill-toggle");
+    if (toggle) {
+      toggle.classList.add("field-error");
     } else {
-      const el = form.elements[name];
-      if (el) el.classList.add("field-error");
+      el.classList.add("field-error");
     }
   });
 }
 
-function initAmpmToggle() {
-  const toggle = document.querySelector(".ampm-toggle");
-  if (!toggle) return;
-  const hidden = toggle.querySelector('input[name="ampm"]');
-  const buttons = toggle.querySelectorAll("button");
+function initPillToggle(container) {
+  if (!container) return;
+  const hidden = container.querySelector('input[type="hidden"]');
+  const buttons = Array.from(container.querySelectorAll("button"));
+
+  function setValue(value) {
+    const index = buttons.findIndex((b) => b.dataset.value === value);
+    if (index === -1) return;
+    if (hidden) hidden.value = value;
+    container.style.setProperty("--index", index);
+    buttons.forEach((b, i) => {
+      const active = i === index;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-pressed", active);
+    });
+  }
 
   buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
-      const value = btn.dataset.value;
-      if (hidden) hidden.value = value;
-      buttons.forEach((b) => {
-        const active = b.dataset.value === value;
-        b.classList.toggle("active", active);
-        b.setAttribute("aria-pressed", active);
-      });
-      toggle.classList.toggle("pm", value === "PM");
-      updateBirthDateTime();
+      setValue(btn.dataset.value);
+      if (hidden && hidden.name === "ampm") {
+        updateBirthDateTime();
+      } else {
+        updateSummary();
+      }
     });
   });
+
+  const activeBtn = buttons.find((b) => b.classList.contains("active"));
+  const initialValue =
+    activeBtn?.dataset.value || hidden?.value || buttons[0]?.dataset.value;
+  if (initialValue) setValue(initialValue);
+}
+
+function initAllPillToggles() {
+  document.querySelectorAll(".pill-toggle").forEach(initPillToggle);
 }
 
 function updateBirthDateTime() {
@@ -471,4 +495,4 @@ if (copyBtn) {
 
 trackPageview();
 translate();
-initAmpmToggle();
+initAllPillToggles();
