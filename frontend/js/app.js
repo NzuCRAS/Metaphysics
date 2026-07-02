@@ -170,12 +170,40 @@ function clearFieldErrors() {
     const el = form.elements[name];
     if (el) el.classList.remove("field-error");
   });
+  const ampmToggle = document.querySelector(".ampm-toggle");
+  if (ampmToggle) ampmToggle.classList.remove("field-error");
 }
 
 function markFieldError(names) {
   names.forEach((name) => {
-    const el = form.elements[name];
-    if (el) el.classList.add("field-error");
+    if (name === "ampm") {
+      const ampmToggle = document.querySelector(".ampm-toggle");
+      if (ampmToggle) ampmToggle.classList.add("field-error");
+    } else {
+      const el = form.elements[name];
+      if (el) el.classList.add("field-error");
+    }
+  });
+}
+
+function initAmpmToggle() {
+  const toggle = document.querySelector(".ampm-toggle");
+  if (!toggle) return;
+  const hidden = toggle.querySelector('input[name="ampm"]');
+  const buttons = toggle.querySelectorAll("button");
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const value = btn.dataset.value;
+      if (hidden) hidden.value = value;
+      buttons.forEach((b) => {
+        const active = b.dataset.value === value;
+        b.classList.toggle("active", active);
+        b.setAttribute("aria-pressed", active);
+      });
+      toggle.classList.toggle("pm", value === "PM");
+      updateBirthDateTime();
+    });
   });
 }
 
@@ -443,3 +471,4 @@ if (copyBtn) {
 
 trackPageview();
 translate();
+initAmpmToggle();
