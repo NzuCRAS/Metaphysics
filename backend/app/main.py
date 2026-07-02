@@ -15,6 +15,13 @@ def _configure_logging():
     root.setLevel(level)
     for handler in root.handlers:
         handler.setLevel(level)
+    for name in ("uvicorn", "uvicorn.access", "uvicorn.error", "app"):
+        logging.getLogger(name).setLevel(level)
+    # 强制让应用各模块的 logger 也能输出 INFO
+    for logger_name in logging.root.manager.loggerDict:
+        if logger_name.startswith("app."):
+            logging.getLogger(logger_name).setLevel(level)
+            logging.getLogger(logger_name).propagate = True
 
 
 @asynccontextmanager

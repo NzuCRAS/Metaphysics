@@ -83,20 +83,38 @@ class OpenAIProvider(LLMClient):
             lc_messages.append(cls(content=content))
         return lc_messages
 
+    @staticmethod
+    def _is_deepseek_v4(model: str) -> bool:
+        return "deepseek-v4" in model.lower()
+
+    @staticmethod
+    def _thinking_disabled_body(model: str) -> Dict[str, Any] | None:
+        """DeepSeek V4 系列默认开启 thinking，需要显式关闭才能直接拿到正式结果。"""
+        if OpenAIProvider._is_deepseek_v4(model):
+            return {"thinking": {"type": "disabled"}}
+        return None
+
     async def complete(self, messages: List[Dict[str, Any]], **kwargs) -> str:
-        lc_messages = self._to_lc_messages(messages)
-        response = await self._client.ainvoke(lc_messages, **kwargs)
-        self._last_usage = self._extract_usage(response)
-        # 若底层未返回 usage（部分私有化模型），按生成文本长度保守估算 output tokens，
-        # 避免成本统计低估导致日预算被突破。
-        if (
-            self._last_usage
-            and self._last_usage.get("output_tokens") is None
-            and isinstance(response.content, str)
-            and response.content
-        ):
-            self._last_usage["output_tokens"] = self._estimate_text_tokens(response.content)
-        return response.content
+        """使用原生 OpenAI 客户端完成非流式调用，避免 LangChain 对 extra_body 的过滤。"""
+        api_messages = self._normalize_messages(messages)
+        request_kwargs: Dict[str, Any] = {
+            "model": self.model,
+            "messages": api_messages,
+        }
+        if self.max_tokens:
+            request_kwargs["max_tokens"] = self.max_tokens
+        thinking_body = self._thinking_disabled_body(self.model)
+        if thinking_body:
+            request_kwargs["extra_body"] = thinking_body
+
+        response = await self._raw_client.chat.completions.create(**request_kwargs, **kwargs)
+        self._last_usage = {
+            "input_tokens": getattr(response.usage, "prompt_tokens", 0) or 0,
+            "output_tokens": getattr(response.usage, "completion_tokens", 0) or 0,
+        }
+        message = response.choices[0].message if response.choices else None
+        content = getattr(message, "content", None) or ""
+        return content
 
     async def stream(self, messages: List[Dict[str, Any]], **kwargs) -> AsyncIterator[str]:
         """使用原生 OpenAI 客户端做真正的逐 token 流式输出。
@@ -113,6 +131,11 @@ class OpenAIProvider(LLMClient):
         }
         if self.max_tokens:
             request_kwargs["max_tokens"] = self.max_tokens
+
+        # DeepSeek V4 系列默认开启 thinking，需要显式关闭才能直接拿到正式结果
+        thinking_body = self._thinking_disabled_body(self.model)
+        if thinking_body:
+            request_kwargs["extra_body"] = thinking_body
 
         # DeepSeek / OpenAI 支持通过 stream_options.include_usage 在最后一个 chunk 返回 usage
         is_deepseek = "deepseek" in self.model.lower() or "deepseek" in (self.base_url or "").lower()
