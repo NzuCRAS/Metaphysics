@@ -120,19 +120,28 @@ class OpenAIProvider(LLMClient):
             request_kwargs["stream_options"] = {"include_usage": True}
 
         accumulated_text = ""
+        accumulated_reasoning = ""
         chunk_index = 0
         response = await self._raw_client.chat.completions.create(**request_kwargs, **kwargs)
         async for chunk in response:
-            delta = chunk.choices[0].delta if chunk.choices else None
-            if chunk_index == 0:
-                logger.info("First raw chunk: choices=%s usage=%s", chunk.choices, chunk.usage)
+            choice = chunk.choices[0] if chunk.choices else None
+            delta = choice.delta if choice else None
+            finish_reason = choice.finish_reason if choice else None
 
             content = getattr(delta, "content", None) or ""
             reasoning = getattr(delta, "reasoning_content", None) or ""
-            if reasoning and not content:
-                # 部分 DeepSeek 模型会先流 reasoning_content；先输出给用户，避免长时间空白
-                content = reasoning
 
+            if chunk_index < 5 or content or reasoning:
+                logger.info(
+                    "Raw chunk #%d: content_len=%d reasoning_len=%d finish_reason=%s",
+                    chunk_index,
+                    len(content),
+                    len(reasoning),
+                    finish_reason,
+                )
+
+            if reasoning:
+                accumulated_reasoning += reasoning
             if content:
                 accumulated_text += content
                 yield content
@@ -144,6 +153,13 @@ class OpenAIProvider(LLMClient):
                     "output_tokens": chunk.usage.completion_tokens,
                 }
             chunk_index += 1
+
+        logger.info(
+            "Stream summary: content_len=%d reasoning_len=%d total_chunks=%d",
+            len(accumulated_text),
+            len(accumulated_reasoning),
+            chunk_index,
+        )
 
         if not self._last_usage and accumulated_text:
             self._last_usage = {
