@@ -157,6 +157,33 @@
         border: 1px solid var(--line);
         color: var(--paper);
       }
+      .pagination button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .page-jump {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .page-jump input {
+        width: 64px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--paper);
+      }
+      .event-log thead th {
+        position: sticky;
+        top: 0;
+        background: var(--surface-soft);
+        z-index: 1;
+        box-shadow: 0 1px 0 var(--line);
+      }
       .error-message {
         background: rgba(168, 46, 38, 0.18);
         border: 1px solid var(--red);
@@ -328,14 +355,19 @@
             </div>
             <div class="pagination">
               <button id="prev-page" type="button">上一页</button>
-              <span id="page-info">第 1 页</span>
+              <span id="page-info">第 1 / – 页</span>
               <button id="next-page" type="button">下一页</button>
+              <label class="page-jump">
+                <span>跳转</span>
+                <input id="jump-page" type="number" min="1" placeholder="页码" />
+              </label>
+              <button id="go-page" type="button">GO</button>
             </div>
           </div>
         </div>
       </div>
     </main>
 
-    <script src="/js/admin.js?v=7"></script>
+    <script src="/js/admin.js?v=8"></script>
   </body>
 </html>

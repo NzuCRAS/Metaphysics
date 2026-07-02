@@ -39,6 +39,8 @@ const dashboardEl = document.getElementById("dashboard");
 
 let currentOffset = 0;
 let currentEvents = [];
+let totalEvents = 0;
+let totalPages = 0;
 let chartInstances = {};
 
 function escapeHtml(str) {
@@ -258,7 +260,15 @@ function renderEventLog(events) {
         </tr>`;
     })
     .join("");
-  document.getElementById("page-info").textContent = `第 ${Math.floor(currentOffset / PAGE_SIZE) + 1} 页`;
+  const page = Math.floor(currentOffset / PAGE_SIZE) + 1;
+  document.getElementById("page-info").textContent = `第 ${page} / ${totalPages} 页`;
+  updatePaginationButtons();
+}
+
+function updatePaginationButtons() {
+  document.getElementById("prev-page").disabled = currentOffset <= 0;
+  document.getElementById("next-page").disabled =
+    currentOffset + PAGE_SIZE >= totalEvents;
 }
 
 async function loadDashboard() {
@@ -276,6 +286,8 @@ async function loadDashboard() {
     renderBucketTable("halfhour-table", summary.half_hourly, "slot");
 
     currentOffset = 0;
+    totalEvents = summary.total_events || 0;
+    totalPages = Math.max(1, Math.ceil(totalEvents / PAGE_SIZE));
     currentEvents = await fetchEvents(inputs.date, currentOffset);
     renderEventLog(currentEvents);
 
@@ -290,10 +302,25 @@ async function changePage(delta) {
   const inputs = getInputs();
   if (!inputs) return;
   const newOffset = currentOffset + delta * PAGE_SIZE;
-  if (newOffset < 0) return;
+  if (newOffset < 0 || newOffset >= totalEvents) return;
   try {
     const events = await fetchEvents(inputs.date, newOffset);
-    if (events.length === 0 && delta > 0) return;
+    currentOffset = newOffset;
+    currentEvents = events;
+    renderEventLog(currentEvents);
+  } catch (err) {
+    showError(err.message || "加载事件失败。");
+  }
+}
+
+async function jumpToPage(page) {
+  const inputs = getInputs();
+  if (!inputs) return;
+  const target = Math.max(1, Math.min(totalPages, page));
+  const newOffset = (target - 1) * PAGE_SIZE;
+  if (newOffset === currentOffset) return;
+  try {
+    const events = await fetchEvents(inputs.date, newOffset);
     currentOffset = newOffset;
     currentEvents = events;
     renderEventLog(currentEvents);
@@ -333,5 +360,17 @@ document.getElementById("download-report").addEventListener("click", async () =>
 
 document.getElementById("prev-page").addEventListener("click", () => changePage(-1));
 document.getElementById("next-page").addEventListener("click", () => changePage(1));
+
+const jumpInput = document.getElementById("jump-page");
+document.getElementById("go-page").addEventListener("click", () => {
+  const page = parseInt(jumpInput.value, 10);
+  if (Number.isFinite(page)) jumpToPage(page);
+});
+jumpInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    const page = parseInt(jumpInput.value, 10);
+    if (Number.isFinite(page)) jumpToPage(page);
+  }
+});
 
 setDateDefault();

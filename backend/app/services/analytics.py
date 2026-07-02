@@ -115,6 +115,7 @@ async def get_daily_summary(session: AsyncSession, day: date) -> dict:
         ((e.cost_cny or Decimal("0")) for e in events if e.event_type in (EVENT_BAZI_REPORT, EVENT_PALMISTRY_REPORT)),
         Decimal("0"),
     )
+    total_events = len(events)
     unique_ips = len({e.ip_address for e in events if e.event_type == EVENT_PAGEVIEW})
 
     by_region: dict = {}
@@ -150,6 +151,7 @@ async def get_daily_summary(session: AsyncSession, day: date) -> dict:
         "total_bazi_reports": total_reports,
         "total_palmistry_requests": total_palmistry_requests,
         "total_palmistry_reports": total_palmistry_reports,
+        "total_events": total_events,
         "total_cost_cny": float(total_cost.quantize(Decimal("0.000001"))),
         "unique_ips": unique_ips,
         "by_region": by_region,
