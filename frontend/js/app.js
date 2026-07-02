@@ -11,6 +11,14 @@ const copy = {
   formTitle: "Tell us where your life chart begins.",
   birthDateLabel: "Date of birth",
   birthTimeLabel: "Time of birth",
+  yearLabel: "Year",
+  monthLabel: "Month",
+  dayLabel: "Day",
+  hourLabel: "Hour",
+  minuteLabel: "Minute",
+  ampmLabel: "AM/PM",
+  invalidDate: "Please enter a valid date of birth.",
+  invalidTime: "Please enter a valid time of birth.",
   genderLabel: "Gender",
   genderPlaceholder: "Select gender",
   genderFemale: "Female",
@@ -22,7 +30,7 @@ const copy = {
   calendarLunar: "Lunar",
   consentText: "I confirm the information is accurate enough for a BaZi reading.",
   submitButton: "Reveal my chart",
-  formNote: "Tip: if you do not know the exact birth time, leave it blank and we can still prepare a general reading.",
+  formNote: "Tip: if you do not know the exact birth minute, leave Minute blank. If the whole birth time is unknown, use 12:00 PM for a general reading.",
   summaryEyebrow: "Reading preview",
   summaryTitle: "Your intake is waiting.",
   summaryDate: "Date",
@@ -42,7 +50,7 @@ const copy = {
   footerNote: "For entertainment and cultural study only. Please view the results rationally.",
 };
 
-const ALLOWED_REGIONS = ["1", "2", "3"];
+const ALLOWED_REGIONS = ["sun", "luna", "dirt"];
 function detectRegion() {
   const segment = window.location.pathname.split("/").filter(Boolean)[0] || "";
   return ALLOWED_REGIONS.includes(segment) ? segment : "global";
@@ -100,8 +108,105 @@ function updateSummary() {
     : copy.missing;
 }
 
-form.addEventListener("input", updateSummary);
-form.addEventListener("change", updateSummary);
+const DATE_PARTS = ["year", "month", "day"];
+const TIME_PARTS = ["hour", "minute", "ampm"];
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+function daysInMonth(year, month) {
+  return new Date(year, month, 0).getDate();
+}
+
+function normalizeAmPm(value) {
+  const v = String(value || "").trim().toUpperCase();
+  if (v === "AM" || v === "A") return "AM";
+  if (v === "PM" || v === "P") return "PM";
+  return "";
+}
+
+function validateDateParts() {
+  const year = parseInt(form.elements.year.value, 10);
+  const month = parseInt(form.elements.month.value, 10);
+  const day = parseInt(form.elements.day.value, 10);
+
+  if (!Number.isFinite(year) || year < 1900 || year > 2100) {
+    return { ok: false, error: "Year must be between 1900 and 2100." };
+  }
+  if (!Number.isFinite(month) || month < 1 || month > 12) {
+    return { ok: false, error: "Month must be between 1 and 12." };
+  }
+  if (!Number.isFinite(day) || day < 1 || day > daysInMonth(year, month)) {
+    return { ok: false, error: "Day is invalid for the selected month." };
+  }
+  return { ok: true, value: `${year}-${pad2(month)}-${pad2(day)}` };
+}
+
+function validateTimeParts() {
+  const hour = parseInt(form.elements.hour.value, 10);
+  const ampm = normalizeAmPm(form.elements.ampm.value);
+  const minuteRaw = form.elements.minute.value;
+  const minute = minuteRaw === "" ? 0 : parseInt(minuteRaw, 10);
+
+  if (!Number.isFinite(hour) || hour < 1 || hour > 12) {
+    return { ok: false, error: "Hour must be between 1 and 12." };
+  }
+  if (!ampm) {
+    return { ok: false, error: "Please select AM or PM." };
+  }
+  if (
+    minuteRaw !== "" &&
+    (!Number.isFinite(minute) || minute < 0 || minute > 59)
+  ) {
+    return { ok: false, error: "Minute must be between 0 and 59." };
+  }
+  const hour24 = (hour % 12) + (ampm === "PM" ? 12 : 0);
+  return { ok: true, value: `${pad2(hour24)}:${pad2(minute)}` };
+}
+
+function clearFieldErrors() {
+  DATE_PARTS.concat(TIME_PARTS).forEach((name) => {
+    const el = form.elements[name];
+    if (el) el.classList.remove("field-error");
+  });
+}
+
+function markFieldError(names) {
+  names.forEach((name) => {
+    const el = form.elements[name];
+    if (el) el.classList.add("field-error");
+  });
+}
+
+function updateBirthDateTime() {
+  const date = validateDateParts();
+  const time = validateTimeParts();
+  form.elements.birthDate.value = date.ok ? date.value : "";
+  form.elements.birthTime.value = time.ok ? time.value : "";
+  updateSummary();
+}
+
+form.addEventListener("input", (event) => {
+  if (
+    DATE_PARTS.includes(event.target.name) ||
+    TIME_PARTS.includes(event.target.name)
+  ) {
+    updateBirthDateTime();
+  } else {
+    updateSummary();
+  }
+});
+form.addEventListener("change", (event) => {
+  if (
+    DATE_PARTS.includes(event.target.name) ||
+    TIME_PARTS.includes(event.target.name)
+  ) {
+    updateBirthDateTime();
+  } else {
+    updateSummary();
+  }
+});
 
 // API helpers
 function hideGlobalError() {
@@ -271,11 +376,30 @@ function renderStreamingReport(rawMarkdown) {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!form.reportValidity()) return;
+  hideGlobalError();
+  clearFieldErrors();
+
+  const date = validateDateParts();
+  if (!date.ok) {
+    markFieldError(DATE_PARTS);
+    showGlobalError(date.error || copy.invalidDate);
+    return;
+  }
+
+  const time = validateTimeParts();
+  if (!time.ok) {
+    markFieldError(TIME_PARTS);
+    showGlobalError(time.error || copy.invalidTime);
+    return;
+  }
+
+  form.elements.birthDate.value = date.value;
+  form.elements.birthTime.value = time.value;
+  updateSummary();
 
   const payload = {
-    birth_date: form.elements.birthDate.value,
-    birth_time: form.elements.birthTime.value,
+    birth_date: date.value,
+    birth_time: time.value,
     gender: form.elements.gender.value,
     birthplace: form.elements.birthPlace.value,
   };

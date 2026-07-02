@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#050403" />
     <title>DaoFortune · BaZi Reading</title>
-    <link rel="stylesheet" href="/css/style.css?v=4" />
+    <link rel="stylesheet" href="/css/style.css?v=5" />
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"
             integrity="sha384-NNQgBjjuhtXzPmmy4gurS5X7P4uTt1DThyevz4Ua0IVK5+kazYQI1W27JHjbbxQz"
             crossorigin="anonymous"></script>
@@ -61,15 +61,145 @@
           </div>
 
           <div class="field-grid">
-            <label class="field">
+            <label class="field date-field">
               <span data-i18n="birthDateLabel">Date of birth</span>
-              <input name="birthDate" type="date" required />
+              <div class="date-parts">
+                <input
+                  name="year"
+                  type="number"
+                  min="1900"
+                  max="2100"
+                  placeholder="YYYY"
+                  required
+                  inputmode="numeric"
+                  aria-label="Year"
+                />
+                <input
+                  name="month"
+                  type="number"
+                  min="1"
+                  max="12"
+                  list="month-list"
+                  placeholder="MM"
+                  required
+                  inputmode="numeric"
+                  aria-label="Month"
+                />
+                <input
+                  name="day"
+                  type="number"
+                  min="1"
+                  max="31"
+                  list="day-list"
+                  placeholder="DD"
+                  required
+                  inputmode="numeric"
+                  aria-label="Day"
+                />
+              </div>
+              <datalist id="month-list">
+                <option value="1"></option>
+                <option value="2"></option>
+                <option value="3"></option>
+                <option value="4"></option>
+                <option value="5"></option>
+                <option value="6"></option>
+                <option value="7"></option>
+                <option value="8"></option>
+                <option value="9"></option>
+                <option value="10"></option>
+                <option value="11"></option>
+                <option value="12"></option>
+              </datalist>
+              <datalist id="day-list">
+                <option value="1"></option>
+                <option value="2"></option>
+                <option value="3"></option>
+                <option value="4"></option>
+                <option value="5"></option>
+                <option value="6"></option>
+                <option value="7"></option>
+                <option value="8"></option>
+                <option value="9"></option>
+                <option value="10"></option>
+                <option value="11"></option>
+                <option value="12"></option>
+                <option value="13"></option>
+                <option value="14"></option>
+                <option value="15"></option>
+                <option value="16"></option>
+                <option value="17"></option>
+                <option value="18"></option>
+                <option value="19"></option>
+                <option value="20"></option>
+                <option value="21"></option>
+                <option value="22"></option>
+                <option value="23"></option>
+                <option value="24"></option>
+                <option value="25"></option>
+                <option value="26"></option>
+                <option value="27"></option>
+                <option value="28"></option>
+                <option value="29"></option>
+                <option value="30"></option>
+                <option value="31"></option>
+              </datalist>
             </label>
+            <input type="hidden" name="birthDate" required />
 
-            <label class="field">
+            <label class="field time-field">
               <span data-i18n="birthTimeLabel">Time of birth</span>
-              <input name="birthTime" type="time" required />
+              <div class="time-parts">
+                <input
+                  name="hour"
+                  type="number"
+                  min="1"
+                  max="12"
+                  list="hour-list"
+                  placeholder="HH"
+                  required
+                  inputmode="numeric"
+                  aria-label="Hour"
+                />
+                <input
+                  name="minute"
+                  type="number"
+                  min="0"
+                  max="59"
+                  placeholder="MM"
+                  inputmode="numeric"
+                  aria-label="Minute"
+                />
+                <input
+                  name="ampm"
+                  type="text"
+                  list="ampm-list"
+                  placeholder="AM/PM"
+                  required
+                  pattern="[AaPp][Mm]"
+                  aria-label="AM or PM"
+                />
+              </div>
+              <datalist id="hour-list">
+                <option value="1"></option>
+                <option value="2"></option>
+                <option value="3"></option>
+                <option value="4"></option>
+                <option value="5"></option>
+                <option value="6"></option>
+                <option value="7"></option>
+                <option value="8"></option>
+                <option value="9"></option>
+                <option value="10"></option>
+                <option value="11"></option>
+                <option value="12"></option>
+              </datalist>
+              <datalist id="ampm-list">
+                <option value="AM"></option>
+                <option value="PM"></option>
+              </datalist>
             </label>
+            <input type="hidden" name="birthTime" required />
 
             <label class="field">
               <span data-i18n="genderLabel">Gender</span>
@@ -164,6 +294,6 @@
       <div class="toast" role="status" aria-live="polite"></div>
     </main>
 
-    <script src="/js/app.js?v=4"></script>
+    <script src="/js/app.js?v=5"></script>
   </body>
 </html>

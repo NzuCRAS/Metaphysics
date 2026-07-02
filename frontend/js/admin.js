@@ -21,6 +21,17 @@ const EVENT_LABELS = {
 
 const PAGE_SIZE = 100;
 
+const REGION_LABELS = {
+  sun: "Sun",
+  luna: "Luna",
+  dirt: "Dirt",
+  global: "Global",
+};
+
+function labelForRegion(region) {
+  return REGION_LABELS[region] || region;
+}
+
 const tokenInput = document.getElementById("admin-token");
 const dateInput = document.getElementById("report-date");
 const errorEl = document.getElementById("error-message");
@@ -151,7 +162,7 @@ function renderCharts(summary) {
   const regions = Object.keys(summary.by_region).sort();
   makeBarChart(
     "region-chart",
-    regions,
+    regions.map((r) => labelForRegion(r)),
     eventCountsToDatasets(
       regions.map((region) => ({ ...summary.by_region[region], region })),
       eventTypes
@@ -162,7 +173,7 @@ function renderCharts(summary) {
   chartInstances["cost-chart"] = new Chart(costCtx, {
     type: "bar",
     data: {
-      labels: regions,
+      labels: regions.map((r) => labelForRegion(r)),
       datasets: [
         {
           label: "LLM cost (CNY)",
@@ -191,7 +202,7 @@ function renderRegionTable(summary) {
       const counts = summary.by_region[region] || {};
       return `
         <tr>
-          <td>${escapeHtml(region)}</td>
+          <td>${escapeHtml(labelForRegion(region))}</td>
           <td>${counts.pageview || 0}</td>
           <td>${(counts.bazi_request || 0) + (counts.palmistry_request || 0)}</td>
           <td>${(counts.bazi_report || 0) + (counts.palmistry_report || 0)}</td>
@@ -237,7 +248,7 @@ function renderEventLog(events) {
         <tr>
           <td>${formatTime(ev.timestamp)}</td>
           <td>${eventTag(escapeHtml(ev.event_type))}</td>
-          <td>${escapeHtml(ev.region)}</td>
+          <td>${escapeHtml(labelForRegion(ev.region))}</td>
           <td>${escapeHtml(ev.ip_address)}</td>
           <td>${escapeHtml(ev.path || "--")}</td>
           <td>${ev.tokens_input ?? "-"}</td>

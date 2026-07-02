@@ -43,7 +43,7 @@ def _get_client_ip(request: Request) -> str:
     return "unknown"
 
 
-ALLOWED_REGIONS = {"1", "2", "3"}
+ALLOWED_REGIONS = {"sun", "luna", "dirt"}
 
 
 def _validate_region(region: Optional[str]) -> str:

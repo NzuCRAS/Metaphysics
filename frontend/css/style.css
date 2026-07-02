@@ -379,6 +379,29 @@ h2 {
   color: rgba(184, 171, 142, 0.78);
 }
 
+.date-parts,
+.time-parts {
+  display: flex;
+  gap: 10px;
+}
+
+.date-parts input,
+.time-parts input {
+  flex: 1;
+  min-width: 0;
+}
+
+.field input.field-error,
+.field select.field-error {
+  border-color: var(--red-bright);
+}
+
+.field-error-msg {
+  color: var(--red-bright);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 .support-row {
   display: grid;
   grid-template-columns: minmax(220px, 0.42fr) 1fr;
