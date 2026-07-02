@@ -400,6 +400,18 @@ h2 {
   color: var(--muted);
 }
 
+.field input[type="number"]::-webkit-outer-spin-button,
+.field input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+.field input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 .field input.field-error,
 .field select.field-error {
   border-color: var(--red-bright);
