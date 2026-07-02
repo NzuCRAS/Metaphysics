@@ -405,6 +405,7 @@ h2 {
   -webkit-appearance: none;
   appearance: none;
   margin: 0;
+  display: none;
 }
 
 .field input[type="number"] {
