@@ -1,9 +1,13 @@
 from typing import AsyncIterator, List, Dict, Any
+import logging
 import openai
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
 from app.services.llm_client import LLMClient
+
+
+logger = logging.getLogger(__name__)
 
 
 class OpenAIProvider(LLMClient):
@@ -116,20 +120,30 @@ class OpenAIProvider(LLMClient):
             request_kwargs["stream_options"] = {"include_usage": True}
 
         accumulated_text = ""
+        chunk_index = 0
         response = await self._raw_client.chat.completions.create(**request_kwargs, **kwargs)
         async for chunk in response:
-            delta = None
-            if chunk.choices:
-                delta = chunk.choices[0].delta.content
-            if delta:
-                accumulated_text += delta
-                yield delta
+            delta = chunk.choices[0].delta if chunk.choices else None
+            if chunk_index == 0:
+                logger.info("First raw chunk: choices=%s usage=%s", chunk.choices, chunk.usage)
+
+            content = getattr(delta, "content", None) or ""
+            reasoning = getattr(delta, "reasoning_content", None) or ""
+            if reasoning and not content:
+                # 部分 DeepSeek 模型会先流 reasoning_content；先输出给用户，避免长时间空白
+                content = reasoning
+
+            if content:
+                accumulated_text += content
+                yield content
+
             # 部分流式接口在最后一个 chunk 的 usage 字段返回 token 统计
             if chunk.usage:
                 self._last_usage = {
                     "input_tokens": chunk.usage.prompt_tokens,
                     "output_tokens": chunk.usage.completion_tokens,
                 }
+            chunk_index += 1
 
         if not self._last_usage and accumulated_text:
             self._last_usage = {

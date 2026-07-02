@@ -207,33 +207,27 @@ async function streamBazi(data) {
   const decoder = new TextDecoder("utf-8");
   let buffer = "";
   let accumulatedReport = "";
+  let receivedDone = false;
 
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
 
-    const lines = buffer.split("\n");
-    buffer = lines.pop();
+    // SSE 事件以 \n\n 分隔；兼容 \r\n\r\n
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() || "";
 
-    for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
-      const jsonStr = line.slice("data: ".length).trim();
-      if (!jsonStr) continue;
-
-      let event;
-      try {
-        event = JSON.parse(jsonStr);
-      } catch (err) {
-        console.warn("Failed to parse SSE event:", jsonStr);
-        continue;
-      }
+    for (const rawEvent of parts) {
+      const event = parseSseEvent(rawEvent);
+      if (!event) continue;
 
       if (event.type === "chunk") {
         accumulatedReport += event.delta || "";
         hideLoading();
         renderStreamingReport(accumulatedReport);
       } else if (event.type === "done") {
+        receivedDone = true;
         return { report: accumulatedReport, metadata: event.metadata };
       } else if (event.type === "error") {
         throw new Error(event.message || copy.errorPrefix);
@@ -241,7 +235,32 @@ async function streamBazi(data) {
     }
   }
 
+  // 连接已关闭但没有收到 done：仍有内容就展示，否则提示被中断
+  if (!receivedDone && accumulatedReport) {
+    return { report: accumulatedReport, metadata: null };
+  }
+  if (!accumulatedReport) {
+    throw new Error("The stream ended before any content was received.");
+  }
   return { report: accumulatedReport, metadata: null };
+}
+
+function parseSseEvent(rawEvent) {
+  const lines = rawEvent.split("\n").map((l) => l.replace(/\r/g, "").trim());
+  let data = "";
+  for (const line of lines) {
+    if (line.startsWith("data:")) {
+      const value = line.slice("data:".length).trim();
+      data = value;
+    }
+  }
+  if (!data || data === "[DONE]") return null;
+  try {
+    return JSON.parse(data);
+  } catch (err) {
+    console.warn("Failed to parse SSE event:", data);
+    return null;
+  }
 }
 
 function renderStreamingReport(rawMarkdown) {
