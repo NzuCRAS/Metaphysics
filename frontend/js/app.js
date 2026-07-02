@@ -183,9 +183,9 @@ async function trackPageview() {
   }
 }
 
-async function postBazi(data) {
+async function streamBazi(data) {
   hideGlobalError();
-  const response = await fetch(`${API_BASE_URL}/bazi`, {
+  const response = await fetch(`${API_BASE_URL}/bazi/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -193,11 +193,61 @@ async function postBazi(data) {
     },
     body: JSON.stringify(data),
   });
-  const result = await response.json().catch(() => ({}));
+
   if (!response.ok) {
+    const result = await response.json().catch(() => ({}));
     throw new Error(result.detail || `${copy.errorPrefix}: ${response.status}`);
   }
-  return result;
+
+  if (!response.body) {
+    throw new Error("Streaming is not supported by this browser.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder("utf-8");
+  let buffer = "";
+  let accumulatedReport = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split("\n");
+    buffer = lines.pop();
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const jsonStr = line.slice("data: ".length).trim();
+      if (!jsonStr) continue;
+
+      let event;
+      try {
+        event = JSON.parse(jsonStr);
+      } catch (err) {
+        console.warn("Failed to parse SSE event:", jsonStr);
+        continue;
+      }
+
+      if (event.type === "chunk") {
+        accumulatedReport += event.delta || "";
+        hideLoading();
+        renderStreamingReport(accumulatedReport);
+      } else if (event.type === "done") {
+        return { report: accumulatedReport, metadata: event.metadata };
+      } else if (event.type === "error") {
+        throw new Error(event.message || copy.errorPrefix);
+      }
+    }
+  }
+
+  return { report: accumulatedReport, metadata: null };
+}
+
+function renderStreamingReport(rawMarkdown) {
+  if (typeof DOMPurify === "undefined" || typeof marked === "undefined") return;
+  const html = DOMPurify.sanitize(marked.parse(rawMarkdown));
+  document.getElementById("result-content").innerHTML = html;
 }
 
 form.addEventListener("submit", async (event) => {
@@ -215,7 +265,7 @@ form.addEventListener("submit", async (event) => {
   showLoading();
 
   try {
-    const result = await postBazi(payload);
+    const result = await streamBazi(payload);
     showResult(result.report);
     showToast(copy.submitted);
   } catch (err) {
