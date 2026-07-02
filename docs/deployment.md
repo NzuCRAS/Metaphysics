@@ -14,7 +14,7 @@
 
 支持的操作系统：Ubuntu 22.04 LTS / Debian 12 / CentOS 7+ 等主流 Linux 发行版。
 
-### 2. 安装 Docker 与 Docker Compose
+### 2. 安装 Docker、Docker Compose 与 Nginx
 
 以 Ubuntu 为例：
 
@@ -40,6 +40,9 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 # 验证安装
 sudo docker --version
 sudo docker compose version
+
+# 安装宿主机 Nginx
+sudo apt-get install -y nginx
 ```
 
 ## 项目部署
@@ -118,18 +121,34 @@ ADMIN_TOKEN=your_secure_admin_token
 sudo docker exec metaphysics-postgres psql -U metaphysics -d metaphysics -c "SELECT * FROM analytics_events ORDER BY timestamp DESC LIMIT 20;"
 ```
 
-### 3. 启动服务
+### 3. 配置 Nginx
+
+复制项目提供的配置，并将其中的 `server_name` 和 `root` 修改为实际域名与项目路径：
 
 ```bash
-sudo docker compose up -d --build
+sudo cp nginx.host.conf /etc/nginx/sites-available/metaphysics
+sudo nano /etc/nginx/sites-available/metaphysics
+sudo ln -s /etc/nginx/sites-available/metaphysics /etc/nginx/sites-enabled/metaphysics
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Nginx 直接提供 `frontend/` 中的静态文件，并将 `/api/`、`/health`、`/docs` 等请求代理到宿主机的 `127.0.0.1:8000`。
+
+确保 Nginx 用户对项目目录及前端静态文件具有读取权限。
+
+### 4. 启动服务
+
+```bash
+sudo docker compose up -d --build --remove-orphans
 ```
 
 首次构建可能需要几分钟。构建完成后：
 
 - 前端页面：http://your-server-ip
-- 后端 API 文档：http://your-server-ip:8000/docs
+- 后端 API 文档：http://your-server-ip/docs
 
-### 4. 查看日志
+### 5. 查看日志
 
 ```bash
 # 所有服务日志
@@ -138,47 +157,18 @@ sudo docker compose logs -f
 # 仅后端日志
 sudo docker compose logs -f backend
 
-# 仅前端日志
-sudo docker compose logs -f frontend
+# Nginx 日志
+sudo journalctl -u nginx -f
 ```
 
 ## HTTPS 配置（推荐）
 
 ### 使用 Nginx + Let's Encrypt
 
-如果服务器已经暴露 80/443 端口，建议通过独立 Nginx 或 Traefik 提供 HTTPS。
-
 #### 安装 certbot
 
 ```bash
 sudo apt-get install -y certbot python3-certbot-nginx nginx
-```
-
-#### Nginx 反向代理配置
-
-编辑 `/etc/nginx/sites-available/metaphysics`：
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://localhost:80;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-启用站点：
-
-```bash
-sudo ln -s /etc/nginx/sites-available/metaphysics /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
 ```
 
 #### 申请 SSL 证书
@@ -189,10 +179,6 @@ sudo certbot --nginx -d your-domain.com
 
 certbot 会自动修改 Nginx 配置并启用 HTTPS。
 
-### 使用 Traefik（容器化方案）
-
-如需完全容器化，可将 docker-compose.yml 中的前端 Nginx 替换为 Traefik，自动管理 Let's Encrypt 证书。
-
 ## 更新与维护
 
 ### 更新代码后重新部署
@@ -200,8 +186,9 @@ certbot 会自动修改 Nginx 配置并启用 HTTPS。
 ```bash
 cd /opt/metaphysics
 sudo git pull
-sudo docker compose down
-sudo docker compose up -d --build
+sudo docker compose up -d --build --remove-orphans
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
 ### 备份数据
@@ -252,10 +239,13 @@ sudo docker compose logs backend
 
 ### 前端无法访问 API
 
-检查前端容器是否能连通后端：
+检查后端和宿主机 Nginx：
 
 ```bash
-sudo docker exec metaphysics-frontend wget -qO- http://backend:8000/health
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1/health
+sudo nginx -t
+sudo journalctl -u nginx -n 100 --no-pager
 ```
 
 ### 图片上传失败
