@@ -83,8 +83,10 @@ class OpenAIProvider(LLMClient):
         self._last_usage = None
         total_input = 0
         total_output = 0
+        accumulated_text = ""
         async for chunk in self._client.astream(lc_messages, **kwargs):
             if chunk.content:
+                accumulated_text += chunk.content
                 yield chunk.content
             # 流式通常没有完整 usage；有则累计
             if hasattr(chunk, "usage_metadata") and chunk.usage_metadata:
@@ -93,6 +95,12 @@ class OpenAIProvider(LLMClient):
                 total_output = um.get("output_tokens") or total_output
         if total_input or total_output:
             self._last_usage = {"input_tokens": total_input, "output_tokens": total_output}
+        elif accumulated_text:
+            # 兜底：按生成文本长度估算 output tokens，避免成本统计低估
+            self._last_usage = {
+                "input_tokens": 0,
+                "output_tokens": self._estimate_text_tokens(accumulated_text),
+            }
 
     @property
     def metadata(self) -> Dict[str, Any]:
