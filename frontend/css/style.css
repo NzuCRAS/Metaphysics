@@ -385,10 +385,19 @@ h2 {
   gap: 10px;
 }
 
-.date-parts input,
-.time-parts input {
+.date-parts input {
   flex: 1;
   min-width: 0;
+}
+
+.time-parts select,
+.time-parts input {
+  flex: 0 1 90px;
+  min-width: 0;
+}
+
+.field select:invalid {
+  color: var(--muted);
 }
 
 .field input.field-error,
