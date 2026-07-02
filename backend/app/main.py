@@ -1,14 +1,25 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import logging
 
 from app.config import settings
 from app.db import init_db
 from app.routers import bazi, palmistry, analytics
 
 
+def _configure_logging():
+    """确保应用日志级别与配置一致，否则 uvicorn 默认只打印 WARNING。"""
+    level = getattr(logging, settings.log_level.upper(), logging.INFO)
+    root = logging.getLogger()
+    root.setLevel(level)
+    for handler in root.handlers:
+        handler.setLevel(level)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _configure_logging()
     # 启动时初始化数据库表
     await init_db()
     yield
