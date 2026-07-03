@@ -50,7 +50,7 @@ const copy = {
   loadingText: "Consulting the AI master, please wait...",
   loadingNote: "AI master is thinking, it may take a long time.",
   errorPrefix: "Analysis failed",
-  footerNote: "For entertainment and cultural study only. Please view the results rationally.",
+  footerNote: "For entertainment purposes only. Not a substitute for professional medical, legal, financial, or psychological advice.",
 };
 
 const GENDER_LABELS = {
